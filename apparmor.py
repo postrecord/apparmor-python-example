@@ -2,14 +2,15 @@
 # https://pythonprogramminglanguage.com
 import subprocess
 import json
+import os
 
-def getProfiles():
+def profiles():
     result = subprocess.run(['apparmor_status', '--json'], stdout=subprocess.PIPE)
     data = result.stdout.decode('utf-8')
     aa_status = json.loads(data)
     return aa_status
 
-def getUnconfined():
+def unconfined():
     result = subprocess.run(['aa-unconfined', '--paranoid'], stdout=subprocess.PIPE)
     data = result.stdout.decode('utf-8')
     lines = data.split("\n")
@@ -21,8 +22,18 @@ def getUnconfined():
         
     return apps
 
+def complain(profile):
+    os.system("sudo aa-complain " + profile)
+    
+def enforce(profile):
+    os.system("sudo aa-enforce  " + profile)
+
+def disable(profile):
+    os.system("sudo ln -s " + profile + " /etc/apparmor.d/disable/")
+    
+
 # List all profiles
-aa_status = getProfiles()
+aa_status = profiles()
 print('version: ' + aa_status['version'])
     
 for profile in aa_status['profiles']:
@@ -30,7 +41,7 @@ for profile in aa_status['profiles']:
    print(status + " " + profile)
 
 # Get unconfined profiles
-apps = getUnconfined()
+apps = unconfined()
 for app in apps:
     print(app[1])
     
